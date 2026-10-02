@@ -14,6 +14,7 @@ from .storage import ROOT, DATA, MODEL, LOCK, study_dir, write_json, read_json
 from .video.processing import inspect_video
 from .pipeline import run
 from .evidence.enrich import enrich_report
+from .patient import FIELDS, PatientProfile, validate_profile
 
 MAX_UPLOAD = 300 * 1024 * 1024
 TASKS = {'unspecified', 'forward_raise', 'side_raise', 'overhead', 'elbow', 'reach', 'hand_to_mouth', 'opposite_shoulder', 'free'}
@@ -90,7 +91,14 @@ def health():
 
 
 @app.post('/api/studies', status_code=202)
-def upload(file: UploadFile = File(...), affected_side: str = Form('unknown'), task: str = Form('unspecified')):
+def upload(file: UploadFile = File(...), affected_side: str = Form('unknown'), task: str = Form('unspecified'), patient_profile: str = Form('{}')):
+    if len(patient_profile) > 100000:
+        raise HTTPException(422, 'Анкета слишком большая.')
+    try:
+        import json
+        profile = validate_profile(json.loads(patient_profile))
+    except ValueError:
+        raise HTTPException(422, 'Проверьте поля анкеты: допустимые значения, числовые диапазоны и даты.')
     if affected_side not in ('left', 'right', 'unknown') or task not in TASKS:
         raise HTTPException(422, 'Недопустимая сторона или задание.')
     extension = Path(file.filename or '').suffix.lower()
@@ -118,6 +126,7 @@ def upload(file: UploadFile = File(...), affected_side: str = Form('unknown'), t
                       'affected_side': affected_side, 'task': task, 'extension': extension,
                       'status': 'queued', 'progress': 0, 'video_quality': quality}
             write_json(directory / 'study.json', status)
+            write_json(directory / 'patient.json', profile)
             active.clear()
             active[study_id] = executor.submit(run, study_id)
             return status
@@ -133,6 +142,42 @@ def upload(file: UploadFile = File(...), affected_side: str = Form('unknown'), t
 @app.get('/api/studies')
 def studies():
     return sorted([read_json(path) for path in DATA.glob('*/study.json')], key=lambda s: s['created_at'], reverse=True)
+
+
+@app.get('/api/patient-form')
+def patient_form():
+    return {'fields': FIELDS, 'defaults': PatientProfile().model_dump(mode='json')}
+
+
+@app.get('/api/studies/{study_id}/patient')
+def patient(study_id: str):
+    directory = existing(study_id)
+    return read_json(directory / 'patient.json') if (directory / 'patient.json').exists() else PatientProfile().model_dump(mode='json')
+
+
+@app.post('/api/studies/{study_id}/patient')
+def update_patient(study_id: str, request: PatientProfile):
+    try:
+        profile = validate_profile(request.model_dump(mode='json'))
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+    with LOCK:
+        directory = existing(study_id)
+        state = read_json(directory / 'study.json')
+        if state['status'] not in ('completed', 'failed') or study_id in evidence_active or (study_id in active and not active[study_id].done()):
+            raise HTTPException(409, 'Дождитесь завершения анализа или обновления отчёта.')
+        report_path = directory / 'report.json'
+        updated = None
+        if state['status'] == 'completed' and report_path.exists():
+            original = read_json(report_path)
+            original['patient_profile'] = profile
+            original.setdefault('provenance', {})['patient_profile_updated_at'] = datetime.now(timezone.utc).isoformat()
+            updated = enrich_report(original)
+        write_json(directory / 'patient.json', profile)
+        if updated:
+            write_json(directory / 'evidence.json', updated['evidence'])
+            write_json(report_path, updated)
+        return {'patient_profile': profile, 'report': updated}
 
 
 @app.get('/api/studies/{study_id}')
@@ -151,7 +196,7 @@ def report(study_id: str):
 @app.get('/api/studies/{study_id}/files/{kind}')
 def files(study_id: str, kind: str):
     directory = existing(study_id)
-    names = {'landmarks': 'landmarks.json', 'metrics': 'metrics.json', 'report': 'report.json', 'evidence': 'evidence.json', 'preview': 'preview.mp4',
+    names = {'patient': 'patient.json', 'landmarks': 'landmarks.json', 'metrics': 'metrics.json', 'report': 'report.json', 'evidence': 'evidence.json', 'preview': 'preview.mp4',
              'original': 'original' + read_json(directory / 'study.json')['extension']}
     if kind not in names or not (directory / names[kind]).exists():
         raise HTTPException(404, 'Файл не найден.')
@@ -166,10 +211,12 @@ def update_evidence(study_id: str, request: EvidenceRequest):
         directory = existing(study_id)
         if not (directory / 'report.json').exists():
             raise HTTPException(409, 'Отчёт ещё не готов.')
+        if read_json(directory / 'study.json')['status'] != 'completed':
+            raise HTTPException(409, 'Дождитесь завершения анализа.')
         if study_id in evidence_active:
             raise HTTPException(409, 'Поиск литературы уже выполняется.')
-        evidence_active.add(study_id)
         original = read_json(directory / 'report.json')
+        evidence_active.add(study_id)
     try:
         enriched = enrich_report(original,online=request.online,topic=request.topic)
         with LOCK:

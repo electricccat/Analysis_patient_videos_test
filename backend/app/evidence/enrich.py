@@ -3,6 +3,7 @@ from .service import ReviewedCatalogService, feature_topics
 from .pubmed import PubMedSearch
 from ..recommendations.service import grounded_sections
 from ..recommendations.safety import SAFETY
+from ..patient import personalized_section
 
 
 def enrich_report(report, *, online=False, topic=None, catalog=None, search=None):
@@ -34,4 +35,5 @@ def enrich_report(report, *, online=False, topic=None, catalog=None, search=None
     result.update(schema_version='1.1',evidence=bundle,evidence_status='reviewed_catalog' if bundle['sources'] else 'no_usable_evidence',
                   clinical_context=contexts,rehabilitation_options=options,evidence_disagreements=disagreements,
                   safety_screen=deepcopy(SAFETY))
+    result['personalized'] = personalized_section(result)
     return result

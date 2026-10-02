@@ -10,7 +10,11 @@ export type EvidenceSource = {
 export type FeatureLink = {metric: string; value: number; unit: string; technical_reliability: string};
 export type ClinicalContext = {id: string; level: string; statement: string; reason: string; feature_links: FeatureLink[]; evidence: EvidenceSource[]; confidence: string; evidence_strength: string};
 export type RehabOption = {id: string; category: string; option: string; reason: string; feature_links: FeatureLink[]; evidence: EvidenceSource[]; evidence_strength: string; clinician_checks: string; disclaimer: string; requires_clinician_review: boolean};
+export type PatientProfile = Record<string, string | number | null>;
+export type PatientField = {key: string; label: string; group: string; kind: string; choices: [string,string][] | null; minimum: number | null; maximum: number | null; hint: string};
+export type Personalized = {scope: string; status: string; population_note: string; missing_information: string[]; priorities: string[]; measurements: FeatureLink[]; goals: string; note: string; options: {id: string; option: string; status: string; patient_basis: {goals: string; daily_limitations: string; affected_side: string; task: string}; feature_links: FeatureLink[]; checks: string[]; evidence: EvidenceSource[]}[]};
 export type Report = {
+ patient_profile?: PatientProfile; personalized?: Personalized;
  study_id: string; affected_side: string; task: string;
  metrics: Record<string, Record<string, Metric>>;
  asymmetry: Record<string, { left: number | null; right: number | null; unit: string; index_percent: number | null }>;

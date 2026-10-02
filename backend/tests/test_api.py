@@ -79,7 +79,7 @@ def test_real_model_blank_video_pipeline_and_deletion(client,tmp_path,monkeypatc
         writer.close()
     assert len(list(extract(path)))==15
     with path.open('rb') as video:
-        response=client.post('/api/studies',files={'file':('blank.mp4',video,'video/mp4')})
+        response=client.post('/api/studies',files={'file':('blank.mp4',video,'video/mp4')},data={'patient_profile':'{"age":60,"condition":"stroke","goals":"Одеваться"}'})
     assert response.status_code==202, response.text
     study_id=response.json()['study_id']
     for _ in range(200):
@@ -91,6 +91,9 @@ def test_real_model_blank_video_pipeline_and_deletion(client,tmp_path,monkeypatc
     assert report['pose_quality']['no_person_frames']==15
     assert report['metrics']['left_arm']['elbow_rom']['value'] is None
     assert report['observations']==[]
+    assert report['patient_profile']['age']==60
+    assert report['personalized']['goals']=='Одеваться'
+    assert report['personalized']['options']==[]
     assert report['provenance']['model_sha256']
     preview=client.get(f'/api/studies/{study_id}/files/preview')
     assert preview.status_code==200

@@ -44,6 +44,7 @@ def run(study_id):
         write_json(directory / 'landmarks.json', {'schema_version': '1.0', 'coordinate_system': 'image normalized; z is model relative depth, not clinical 3D', 'frames': frames})
         analysis = analyze(frames, quality['width'], quality['height'])
         metadata = {'study_id': study_id, 'affected_side': status['affected_side'], 'task': status['task'],
+                    'patient_profile': read_json(directory / 'patient.json') if (directory / 'patient.json').exists() else {},
                     'video_quality': {**quality, 'decoded_frames': len(frames), 'decoded_duration_seconds': frames[-1]['timestamp']},
                     'provenance': {'algorithm_version': '0.1.0', 'model': 'MediaPipe Pose Landmarker Lite',
                                    'model_sha256': model_hash, 'mediapipe_version': provider_version,
