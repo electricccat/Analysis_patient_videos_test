@@ -1,0 +1,70 @@
+{
+ "version": "2026-10-02.1",
+ "sources": [
+  {
+   "id": "nice_ng236", "title": "Stroke rehabilitation in adults (NG236)",
+   "authors_or_organization": "National Institute for Health and Care Excellence (NICE)", "year": 2023,
+   "url": "https://www.nice.org.uk/guidance/ng236/chapter/Recommendations", "doi": null,
+   "publication_type": "clinical_practice_guideline", "accessed_at": "2026-10-02", "verified": true, "verification_scope": "reviewed_content",
+   "summary": "Рекомендации по функциональной тренировке, эрготерапии, дополнительной зеркальной терапии и условному применению электростимуляции. Роботизированная тренировка руки не рекомендована.",
+   "evidence_strength": "Клинические рекомендации; сила отдельных положений различается. Тип источника не равнозначен высокому GRADE.",
+   "locator": "Разделы 1.13 Movement и 1.16 Self-care; электростимуляция 1.13.14–17, роботизированная терапия 1.13.18, зеркальная терапия 1.13.30.",
+   "topics": ["upper_limb", "task_practice", "occupational_therapy", "mirror_therapy", "cimt", "electrical_stimulation"]
+  },
+  {
+   "id": "uk_stroke_2023", "title": "National Clinical Guideline for Stroke for the UK and Ireland — Motor recovery",
+   "authors_or_organization": "Intercollegiate Stroke Working Party / Guideline Development Group", "year": 2023,
+   "url": "https://www.strokeguideline.org/chapter/motor-recovery-and-physical-effects-of-stroke/", "doi": null,
+   "publication_type": "clinical_practice_guideline", "accessed_at": "2026-10-02", "verified": true, "verification_scope": "reviewed_content",
+   "summary": "Функциональная практика может быть одно- или двусторонней. CIMT требует оценки кисти. Роботизированная терапия допускается как дополнение, предпочтительно в исследовании.",
+   "evidence_strength": "Клинические рекомендации; отдельные положения основаны на консенсусе, включая FES кисти (4.18 C).",
+   "locator": "Раздел 4.18 Arm function: рекомендации A–I и Evidence to recommendations.",
+   "topics": ["upper_limb", "reaching", "shoulder_movement", "elbow_extension", "task_practice", "bilateral_training", "cimt", "electrical_stimulation", "mirror_therapy"]
+  },
+  {
+   "id": "cochrane_rtt_2016", "title": "Repetitive task training for improving functional ability after stroke",
+   "authors_or_organization": "French B, Thomas LH, Coupe J, McMahon NE, Connell L, Harrison J, Sutton CJ, Tishkovskaya S, Watkins CL", "year": 2016,
+   "url": "https://www.cochrane.org/evidence/CD006073_repetitive-task-training-improving-functional-ability-after-stroke", "doi": "10.1002/14651858.CD006073.pub3",
+   "publication_type": "systematic_review", "accessed_at": "2026-10-02", "verified": true, "verification_scope": "reviewed_content",
+   "summary": "Повторение функциональных задач связано с небольшим улучшением функции руки и кисти; качество доказательств для этих исходов низкое. Безопасность изучена недостаточно.",
+   "evidence_strength": "Низкое качество доказательств для функции руки/кисти (GRADE в обзоре). Поиск литературы завершён в июне 2016 года.",
+   "locator": "Main results; Authors' conclusions; CD006073.", "topics": ["upper_limb", "task_practice", "reaching", "shoulder_movement", "elbow_extension"]
+  },
+  {
+   "id": "cochrane_trunk_2023", "title": "Trunk training following stroke",
+   "authors_or_organization": "Thijs L, Voets E, Denissen S, Mehrholz J, Elsner B, Lemmens R, Verheyden GSAF", "year": 2023,
+   "url": "https://www.cochrane.org/evidence/CD013712_trunk-training-improving-activities-people-stroke", "doi": "10.1002/14651858.CD013712.pub2",
+   "publication_type": "systematic_review", "accessed_at": "2026-10-02", "verified": true, "verification_scope": "reviewed_content",
+   "summary": "Тренировка туловища может улучшать его функцию и другие активности после инсульта. Уверенность в доказательствах для многих исходов низкая или очень низкая.",
+   "evidence_strength": "Очень низкая–низкая уверенность для многих исходов; зависит от исхода и сравнения. Это не доказательство необходимости ограничивать туловище при reach.",
+   "locator": "Quality of the evidence; Authors' conclusions; CD013712.", "topics": ["trunk_control"]
+  },
+  {
+   "id": "cochrane_ot_2017", "title": "Occupational therapy for adults with problems in activities of daily living after stroke",
+   "authors_or_organization": "Legg LA, Lewis SR, Schofield-Robinson OJ, Drummond A, Langhorne P", "year": 2017,
+   "url": "https://www.cochrane.org/evidence/CD003585_occupational-therapy-adults-problems-activities-daily-living-after-stroke", "doi": "10.1002/14651858.CD003585.pub3",
+   "publication_type": "systematic_review", "accessed_at": "2026-10-02", "verified": true, "verification_scope": "reviewed_content",
+   "summary": "Эрготерапия с фокусом на повседневные действия может улучшать выполнение ADL; исследования имеют ограничения, качество доказательств низкое.",
+   "evidence_strength": "Низкое качество доказательств (GRADE); поиск завершён в январе 2017 года.",
+   "locator": "Authors' conclusions; CD003585.", "topics": ["occupational_therapy", "reaching"]
+  },
+  {
+   "id": "cochrane_mirror_2018", "title": "Mirror therapy for improving motor function after stroke",
+   "authors_or_organization": "Thieme H, Morkisch N, Mehrholz J, Pohl M, Behrens J, Borgetto B, Dohle C", "year": 2018,
+   "url": "https://www.cochrane.org/evidence/CD008449_mirror-therapy-improving-movement-after-stroke", "doi": "10.1002/14651858.CD008449.pub3",
+   "publication_type": "systematic_review", "accessed_at": "2026-10-02", "verified": true, "verification_scope": "reviewed_content",
+   "summary": "Зеркальная терапия может улучшать двигательную функцию как дополнение к реабилитации; результат зависит от сравниваемого вмешательства. Есть ограничения исследований.",
+   "evidence_strength": "Умеренное качество для двигательной функции и ADL; не универсальное преимущество над активной терапией. Поиск до августа 2017 года.",
+   "locator": "Main results; Authors' conclusions; CD008449.", "topics": ["mirror_therapy"]
+  },
+  {
+   "id": "cochrane_overview_2014", "title": "Interventions for improving upper limb function after stroke",
+   "authors_or_organization": "Pollock A, Farmer SE, Brady MC, Langhorne P, Mead GE, Mehrholz J, van Wijck F", "year": 2014,
+   "url": "https://www.cochrane.org/evidence/CD010820_interventions-improve-arm-and-hand-function-people-after-stroke", "doi": "10.1002/14651858.CD010820.pub2",
+   "publication_type": "systematic_review", "accessed_at": "2026-10-02", "verified": true, "verification_scope": "reviewed_content",
+   "summary": "Обзор обзоров указывал на возможное преимущество односторонней тренировки перед двусторонней. Это старые данные; универсальный выбор подхода не установлен.",
+   "evidence_strength": "Умеренное качество для указанного сравнения в обзоре; поиск до июня 2013 года. Нужна оценка актуальности для конкретного вопроса.",
+   "locator": "Main results; CD010820.", "topics": ["bilateral_training"]
+  }
+ ]
+}

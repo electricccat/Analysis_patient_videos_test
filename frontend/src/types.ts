@@ -1,0 +1,27 @@
+export type Study = { study_id: string; created_at: string; affected_side: string; task: string; status: string; progress: number | null; processed_frames?: number; error?: string };
+export type Landmark = { x: number; y: number; z: number; confidence: number; timestamp: number };
+export type Frame = { timestamp: number; landmarks: Record<string, Landmark>; people: number };
+export type Metric = { value: number | null; unit: string; coverage: number; technical_reliability: string; status: string };
+export type EvidenceSource = {
+ id: string; title: string; authors_or_organization: string; year: number; url: string; doi: string | null;
+ publication_type: string; summary: string; accessed_at: string; verified: boolean;
+ verification_scope: 'reviewed_content'|'bibliographic_metadata'; evidence_strength: string; locator: string | null;
+};
+export type FeatureLink = {metric: string; value: number; unit: string; technical_reliability: string};
+export type ClinicalContext = {id: string; level: string; statement: string; reason: string; feature_links: FeatureLink[]; evidence: EvidenceSource[]; confidence: string; evidence_strength: string};
+export type RehabOption = {id: string; category: string; option: string; reason: string; feature_links: FeatureLink[]; evidence: EvidenceSource[]; evidence_strength: string; clinician_checks: string; disclaimer: string; requires_clinician_review: boolean};
+export type Report = {
+ study_id: string; affected_side: string; task: string;
+ metrics: Record<string, Record<string, Metric>>;
+ asymmetry: Record<string, { left: number | null; right: number | null; unit: string; index_percent: number | null }>;
+ series: Record<string, number | null>[];
+ events: { timestamp: number; label: string; side: string; kind: string }[];
+ observations: { level: string; statement: string; technical_reliability: string }[];
+ limitations: string[]; safety: string;
+ clinical_context?: ClinicalContext[]; rehabilitation_options?: RehabOption[];
+ safety_screen?: {title: string; video_cannot_assess: string[]; statement: string; individual_plan: string; not_prescribed: string};
+ evidence?: { catalog_version: string; topics: string[]; feature_links: FeatureLink[]; sources: EvidenceSource[]; search_results: EvidenceSource[]; warnings: string[]; selection_note: string; online_search: {status: string; topic?: string; accessed_at?: string; query?: string; from_cache?: boolean} };
+ evidence_disagreements?: {topic: string; statement: string; evidence: EvidenceSource[]}[];
+ pose_quality: { level: string; threshold: number; no_person_frames: number; ambiguous_person_frames: number; landmarks: Record<string, { coverage: number; mean_confidence: number }> };
+ video_quality: { width: number; height: number; decoded_duration_seconds: number; decoded_frames: number; nominal_fps: number | null };
+};
