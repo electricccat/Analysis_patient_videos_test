@@ -46,7 +46,7 @@ export default function App() {
    };
    poll(); return ()=>{ cancelled = true; clearTimeout(timer); };
  },[selected?.study_id]);
- const choose = (study: Study|null) => { setSelected(study); setReport(null); setFrames([]); setTime(0); setError(''); setDeletePrompt(false); };
+ const choose = (study: Study|null) => { if (study && study.study_id === selected?.study_id) return; setSelected(study); setReport(null); setFrames([]); setTime(0); setError(''); setDeletePrompt(false); };
  const upload = async () => {
    if (!file) return;
    setBusy(true); setError('');
@@ -74,12 +74,13 @@ export default function App() {
    <aside className="sidebar"><a className="brand" href="/" aria-label="Кинема — главная"><Activity size={28}/><span>кинема<span className="brand-dot">.</span></span></a><div className="brand-sub">ЛАБОРАТОРИЯ ДВИЖЕНИЯ</div>
      <div className="nav-label">РАБОЧЕЕ ПРОСТРАНСТВО</div><button className={`nav-item ${!selected?'active':''}`} onClick={()=>choose(null)}><Upload size={18}/> Новое исследование <span>＋</span></button>
      <div className="nav-label study-label">ИССЛЕДОВАНИЯ <span>{studies.length.toString().padStart(2,'0')}</span></div>
-     <div className="study-list">{studies.length === 0 && <p className="empty-side">Загруженные видео появятся здесь</p>}{studies.map((s,i)=><button className={`study-item ${selected?.study_id===s.study_id?'chosen':''}`} key={s.study_id} onClick={()=>choose(s)}><FileVideo size={17}/><div><strong>Исследование {studies.length-i}</strong><small>{new Date(s.created_at).toLocaleDateString('ru-RU')} · {s.status==='completed'?'Готово':s.status==='failed'?'Ошибка':'В работе'}</small></div><ChevronRight size={14}/></button>)}</div>
+     <div className="study-list">{studies.length === 0 && <p className="empty-side">Загруженные видео появятся здесь</p>}{studies.map((s,i)=><button className={`study-item ${selected?.study_id===s.study_id?'chosen':''}`} key={s.study_id} onClick={()=>choose(s)}><FileVideo size={17}/><div><strong>{s.title||`Исследование ${studies.length-i}`}</strong><small>{new Date(s.created_at).toLocaleDateString('ru-RU')} · {s.status==='completed'?'Готово':s.status==='failed'?'Ошибка':'В работе'}</small></div><ChevronRight size={14}/></button>)}</div>
      <div className="local-note"><ShieldCheck size={21}/><strong>Видео остаётся у вас</strong><p>Обработка на локальном сервере. Без отправки во внешние AI API.</p><span className="tag dark">MVP · v0.1</span></div>
    </aside>
    <main><header className="topbar"><span>Верхняя конечность <ChevronRight size={14}/> {selected?'Результаты исследования':'Новое исследование'}</span><span className="prototype"><span/> ИССЛЕДОВАТЕЛЬСКИЙ ПРОТОТИП</span></header>
    <div className="content"><div className="page-heading"><div><div className="eyebrow">ОБЪЕКТИВНОЕ ИЗМЕРЕНИЕ ДВИЖЕНИЯ</div><h1>{report?'От движения — к данным.':'Каждое движение имеет значение.'}</h1><p>{report?'Исследуйте траектории, суставные углы и различия между сторонами.':'Загрузите видео, чтобы увидеть движение верхних конечностей во времени.'}</p></div><div className="heading-icon"><Activity size={38}/></div></div>
    {error && <div role="alert" className="error">{error}</div>}
+   {(selected?.is_demo||report?.is_demo) && <div className="demo-notice" role="note"><strong>Демонстрационный пример · вымышленный пациент</strong><p>Анкета и очные результаты придуманы. Видео — схематическая анимация, метрики рассчитаны по заданным координатам без распознавания MediaPipe. Этот пример показывает работу интерфейса и правил подбора; он не подтверждает клиническую точность программы.</p></div>}
    {!selected && <>
      <div className="workflow"><span className="current"><b>01</b> Загрузка видео</span><ChevronRight size={16}/><span><b>02</b> Анализ движения</span><ChevronRight size={16}/><span><b>03</b> Результаты</span></div>
      <div className="upload-grid"><section className="card upload-card"><div className="panel-heading"><h2>Видео пациента</h2><span className="tag">Локальная обработка</span></div>
