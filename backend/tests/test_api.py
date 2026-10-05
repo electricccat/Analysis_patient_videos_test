@@ -29,6 +29,19 @@ def test_external_origin_and_upload_limit(client):
     assert client.post('/api/studies',content=b'x',headers={'Content-Length':str(main.MAX_UPLOAD*2)}).status_code==413
 
 
+def test_phone_origin_requires_explicit_lan_address(client, monkeypatch):
+    study_path = '/api/studies/' + 'a' * 32
+    phone_origin = 'http://192.168.1.231:8000'
+    monkeypatch.setattr(main, 'LAN_ADDRESS', '')
+    assert client.delete(study_path, headers={'Origin': phone_origin}).status_code == 403
+    monkeypatch.setattr(main, 'LAN_ADDRESS', '192.168.1.231')
+    assert client.get('/api/health').json()['lan_address'] == '192.168.1.231'
+    # Allowed origin reaches the route; the nonexistent study remains protected.
+    assert client.delete(study_path, headers={'Origin': phone_origin}).status_code == 404
+    assert client.delete(study_path, headers={'Origin': 'http://192.168.1.232:8000'}).status_code == 403
+    assert client.delete(study_path, headers={'Origin': phone_origin + '.evil.test'}).status_code == 403
+
+
 def test_evidence_upgrade_saved_legacy_report_and_delete(client,tmp_path):
     from backend.tests.test_analysis import synthetic
     from backend.app.movement_analysis.analyze import analyze
@@ -66,13 +79,15 @@ def test_variable_frame_rate_pts_survive_browser_transcode(tmp_path):
     assert [t for _,t,_ in extract(path)]==pytest.approx(timestamps,abs=1e-5)
 
 
-def test_real_model_blank_video_pipeline_and_deletion(client,tmp_path,monkeypatch):
+@pytest.mark.parametrize('rotation', [0,90])
+def test_real_model_blank_video_pipeline_and_deletion(client,tmp_path,monkeypatch,rotation):
     from concurrent.futures import ThreadPoolExecutor
     executor=ThreadPoolExecutor(max_workers=1)
     monkeypatch.setattr(main,'executor',executor)
     monkeypatch.setattr(main,'active',{})
     path=tmp_path/'blank.mp4'
     writer=PreviewWriter(path,320,240,30)
+    writer.stream.set_display_rotation(rotation)
     try:
         for i in range(15): writer.write(np.zeros((240,320,3),np.uint8),i/30)
     finally:
@@ -88,6 +103,8 @@ def test_real_model_blank_video_pipeline_and_deletion(client,tmp_path,monkeypatc
         time.sleep(.1)
     assert status['status']=='completed',status
     report=client.get(f'/api/studies/{study_id}/report').json()
+    assert (report['video_quality']['width'],report['video_quality']['height']) == ((240,320) if rotation else (320,240))
+    assert report['video_quality']['rotation_ccw'] == rotation
     assert report['patient_literature']['status'] == 'unavailable'
     assert report['patient_literature']['feature_links'] == []
     assert report['pose_quality']['no_person_frames']==15

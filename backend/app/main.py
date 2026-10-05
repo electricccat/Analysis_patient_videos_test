@@ -5,6 +5,7 @@ from pathlib import Path
 import shutil
 import uuid
 import os
+from ipaddress import IPv4Address, IPv4Network
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -22,6 +23,18 @@ TASKS = {'unspecified', 'forward_raise', 'side_raise', 'overhead', 'elbow', 'rea
 executor = ThreadPoolExecutor(max_workers=1)
 active = {}
 evidence_active = set()
+LAN_ADDRESS = os.environ.get('KINEMA_LAN_ADDRESS', '')
+if LAN_ADDRESS and not any(IPv4Address(LAN_ADDRESS) in IPv4Network(cidr) for cidr in
+                          ('10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16')):
+    raise ValueError('KINEMA_LAN_ADDRESS must be a private IPv4 address')
+
+
+def browser_origins():
+    origins = {'http://127.0.0.1:8000', 'http://localhost:8000',
+               'http://127.0.0.1:5173', 'http://localhost:5173'}
+    if LAN_ADDRESS:
+        origins.add(f'http://{LAN_ADDRESS}:8000')
+    return origins
 
 
 class EvidenceRequest(BaseModel):
@@ -50,7 +63,7 @@ async def lifespan(app):
 
 
 app = FastAPI(title='Upper Limb Motion Lab', version='0.1.0', lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=['http://127.0.0.1:5173', 'http://localhost:5173'],
+app.add_middleware(CORSMiddleware, allow_origins=sorted(browser_origins()),
                    allow_methods=['GET', 'POST', 'DELETE'], allow_headers=['Content-Type'])
 
 
@@ -58,7 +71,7 @@ app.add_middleware(CORSMiddleware, allow_origins=['http://127.0.0.1:5173', 'http
 async def local_request_guard(request, call_next):
     if request.method in ('POST', 'DELETE'):
         origin = request.headers.get('origin')
-        allowed = {'http://127.0.0.1:8000', 'http://localhost:8000', 'http://127.0.0.1:5173', 'http://localhost:5173'}
+        allowed = browser_origins()
         if origin and origin not in allowed:
             return JSONResponse({'detail': 'Внешний origin запрещён.'}, status_code=403)
     if request.method == 'POST' and request.url.path == '/api/studies':
@@ -89,7 +102,8 @@ def existing(study_id):
 
 @app.get('/api/health')
 def health():
-    return {'status': 'ok', 'model_ready': MODEL.is_file(), 'external_video_transfer': False}
+    return {'status': 'ok', 'model_ready': MODEL.is_file(), 'external_video_transfer': False,
+            'lan_address': LAN_ADDRESS or None}
 
 
 @app.post('/api/studies', status_code=202)

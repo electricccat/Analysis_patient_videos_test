@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Activity, ArrowUpRight, Upload, ShieldCheck, ChevronRight, Download, Trash2, CircleHelp, FileVideo, CheckCircle2, LoaderCircle } from 'lucide-react';
+import { Activity, ArrowUpRight, Upload, ShieldCheck, ChevronRight, Download, Trash2, CircleHelp, FileVideo, CheckCircle2, LoaderCircle, Video } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts';
 import { api } from './api';
 import type { Study, Report, Frame, PatientProfile } from './types';
@@ -86,7 +86,12 @@ export default function App() {
      <div className="workflow"><span className="current"><b>01</b> Загрузка видео</span><ChevronRight size={16}/><span><b>02</b> Анализ движения</span><ChevronRight size={16}/><span><b>03</b> Результаты</span></div>
      <div className="upload-grid"><section className="card upload-card"><div className="panel-heading"><h2>Видео пациента</h2><span className="tag">Локальная обработка</span></div>
        <label className={`dropzone ${file?'has-file':''}`} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();setFile(e.dataTransfer.files[0]||null);}}><input type="file" accept=".mp4,.mov,.webm" onChange={e=>setFile(e.target.files?.[0]||null)}/><div className="upload-symbol"><Upload size={28}/></div><strong>{file?file.name:'Перетащите видео сюда'}</strong><span>{file?`${(file.size/1024/1024).toFixed(1)} МБ · нажмите для замены`:'или нажмите, чтобы выбрать файл'}</span><small>MP4, MOV, WebM · до 300 МБ · до 3 минут</small></label>
-       {localUrl && <video className="source-preview" src={localUrl} controls/>}
+       <div className="camera-upload">
+         <label className="primary camera-button"><input aria-label="Записать видео с камеры устройства" type="file" accept="video/*" capture="environment" disabled={busy} onChange={e=>{const recorded=e.currentTarget.files?.[0];if(recorded){setFile(recorded);setError('');}e.currentTarget.value='';}}/><Video size={19}/> Записать видео</label>
+         <p className="caption">На телефоне откроется камера или меню выбора записи. После съёмки подтвердите видео — оно появится здесь для просмотра. Если камера не открывается, запишите видео обычной камерой и выберите файл выше.</p>
+         <p className="caption">Снимайте до 3 минут, желательно в 1080p: камера неподвижна, плечи, локти, кисти и таз видны. Видео отправится на компьютер только после нажатия «Начать анализ».</p>
+       </div>
+       {localUrl && <video className="source-preview" src={localUrl} controls playsInline preload="metadata"/>}
        {file && <p className="caption">Если браузер не воспроизводит MOV, после анализа будет доступна MP4-копия.</p>}
        <div className="upload-bottom"><ShieldCheck size={16}/><span>Видео не используется для обучения моделей.</span></div>
      </section><section className="card setup-card"><div className="panel-heading"><h2>Параметры исследования</h2><span className="step-number">01 / 03</span></div><label className="field-label">Поражённая сторона <CircleHelp size={14}/></label><div className="segmented">{[['left','Левая'],['right','Правая'],['unknown','Неизвестно']].map(([value,label])=><button key={value} className={side===value?'selected':''} onClick={()=>setSide(value)}>{label}</button>)}</div><p className="caption">Анатомическая сторона пациента, независимо от положения на экране.</p><label className="field-label" htmlFor="task">Задание <span>Необязательно</span></label><select id="task" value={task} onChange={e=>setTask(e.target.value)}>{Object.entries(tasks).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select><p className="caption">Движение можно анализировать и без выбора упражнения.</p><div className="setup-note"><Activity size={19}/><p>Плечи, локти, запястья, положение головы и корпуса — в одном исследовании.</p></div><p className="caption">Ниже можно заполнить историю болезни и цели пациента, затем начать анализ видео.</p>{modelReady===false && <p className="error">Установите модель: python scripts/download_model.py</p>}</section></div>

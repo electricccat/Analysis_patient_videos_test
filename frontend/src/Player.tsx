@@ -52,7 +52,7 @@ export default function Player({ report, frames, time, setTime }: { report: Repo
  return <>
    <div className="panel-heading"><h3>Движение в кадре</h3><span className="tag">{report.video_quality.width} × {report.video_quality.height}</span></div>
    <div className="video-stage" style={{aspectRatio: `${report.video_quality.width}/${report.video_quality.height}`}}>
-     <video ref={video} src={`/api/studies/${report.study_id}/files/preview`} controls onTimeUpdate={e => setTime(e.currentTarget.currentTime)} onSeeked={e => setTime(e.currentTarget.currentTime)} />
+     <video ref={video} src={`/api/studies/${report.study_id}/files/preview`} controls playsInline preload="metadata" onTimeUpdate={e => setTime(e.currentTarget.currentTime)} onSeeked={e => setTime(e.currentTarget.currentTime)} />
      <canvas ref={canvas} aria-label="Скелет и траектории кистей"/>
    </div>
    <div className="player-options"><label><input type="checkbox" checked={overlay} onChange={e=>setOverlay(e.target.checked)}/> Скелет</label><label><input type="checkbox" checked={trajectory} onChange={e=>setTrajectory(e.target.checked)}/> Траектории · 3 с</label><span>{time.toFixed(2)} с</span></div>
