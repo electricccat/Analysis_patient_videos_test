@@ -111,6 +111,8 @@ def test_patient_api_persistence_legacy_report_update_and_busy_guard(client):
     assert response.status_code == 200, response.text
     assert response.json()['report']['metrics'] == original['metrics']
     assert response.json()['report']['personalized']['goals'] == 'Одеваться'
+    assert response.json()['report']['patient_literature']['status'] == 'unavailable'
+    assert response.json()['report']['patient_literature']['groups'][0]['topic'] == 'assessment'
     assert client.get(f'/api/studies/{study_id}/files/patient').json()['goals'] == 'Одеваться'
     assert client.get(f'/api/studies/{study_id}/report').json()['patient_profile']['age'] == 60
     assert client.post(f'/api/studies/{study_id}/patient', json={'pain_rest': 99}).status_code == 422
@@ -127,3 +129,30 @@ def test_invalid_upload_history_rejected_before_storing_video(client):
     response = client.post('/api/studies', files={'file': ('test.mp4', b'invalid')}, data={'patient_profile': '{"age": -1}'})
     assert response.status_code == 422
     assert list(storage.DATA.iterdir()) == []
+
+
+def test_patient_literature_api_refresh_and_offline_evidence_preserve_block(client, monkeypatch):
+    from backend.app.evidence import patient_search
+    from backend.app.evidence.pubmed import PubMedSearch
+    from backend.tests.test_patient_search import transport
+    calls = []
+    monkeypatch.setattr(patient_search, 'PubMedSearch', lambda **kwargs: PubMedSearch(transport(calls), **kwargs))
+    study_id = 'b' * 32
+    directory = storage.study_dir(study_id)
+    directory.mkdir()
+    storage.write_json(directory / 'study.json', {'study_id': study_id, 'status': 'completed'})
+    original = patient_report()
+    original['study_id'] = study_id
+    storage.write_json(directory / 'report.json', original)
+    response = client.post(f'/api/studies/{study_id}/evidence', json={'patient_online': True})
+    assert response.status_code == 200, response.text
+    block = response.json()['patient_literature']
+    assert block['status'] == 'completed'
+    assert len(calls) == 6
+    assert response.json()['metrics'] == original['metrics']
+    saved = client.get(f'/api/studies/{study_id}/report').json()
+    assert saved['patient_literature'] == block
+    refreshed = client.post(f'/api/studies/{study_id}/evidence', json={'online': False})
+    assert refreshed.json()['patient_literature'] == block
+    assert len(calls) == 6
+    assert study_id not in main.evidence_active

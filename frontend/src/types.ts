@@ -1,4 +1,4 @@
-export type Study = { is_demo?: boolean; title?: string; study_id: string; created_at: string; affected_side: string; task: string; status: string; progress: number | null; processed_frames?: number; error?: string };
+export type Study = { is_demo?: boolean; title?: string; study_id: string; created_at: string; affected_side: string; task: string; status: string; stage?: string; progress: number | null; processed_frames?: number; error?: string };
 export type Landmark = { x: number; y: number; z: number; confidence: number; timestamp: number };
 export type Frame = { timestamp: number; landmarks: Record<string, Landmark>; people: number };
 export type Metric = { value: number | null; unit: string; coverage: number; technical_reliability: string; status: string };
@@ -14,6 +14,7 @@ export type PatientProfile = Record<string, string | number | null>;
 export type PatientField = {key: string; label: string; group: string; kind: string; choices: [string,string][] | null; minimum: number | null; maximum: number | null; hint: string};
 export type Personalized = {scope: string; status: string; population_note: string; missing_information: string[]; priorities: string[]; measurements: FeatureLink[]; goals: string; note: string; options: {id: string; option: string; status: string; patient_basis: {goals: string; daily_limitations: string; affected_side: string; task: string}; feature_links: FeatureLink[]; checks: string[]; evidence: EvidenceSource[]}[]};
 export type Report = {
+ patient_literature?: {status: string; generated_at: string; basis: string[]; warnings: string[]; note: string; privacy: string; sources: EvidenceSource[]; reviewed_sources: EvidenceSource[]; feature_links: FeatureLink[]; groups: {topic: string; title: string; reason: string; status: string; query?: string; accessed_at?: string; source_ids: string[]}[]};
  is_demo?: boolean;
  patient_profile?: PatientProfile; personalized?: Personalized;
  study_id: string; affected_side: string; task: string;

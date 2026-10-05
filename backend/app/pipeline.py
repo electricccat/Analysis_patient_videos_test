@@ -6,6 +6,7 @@ from .video.processing import extract, PreviewWriter
 from .pose.provider import MediaPipeProvider
 from .movement_analysis.analyze import analyze, CONFIDENCE, MIN_COVERAGE
 from .report.build import build_report
+from .evidence.patient_search import with_patient_literature
 
 
 def run(study_id):
@@ -53,6 +54,9 @@ def run(study_id):
                                    'parameters': {'landmark_confidence': CONFIDENCE, 'min_coverage': MIN_COVERAGE,
                                                   'smoothing_window_seconds': .15, 'max_derivative_gap_seconds': .25}}}
         report = build_report(analysis, metadata)
+        status.update(progress=.97, stage='patient_literature')
+        write_json(status_path, status)
+        report = with_patient_literature(report)
         write_json(directory / 'metrics.json', {key: report[key] for key in ('metrics', 'asymmetry', 'normalization', 'series')})
         write_json(directory / 'report.json', report)
         write_json(directory / 'evidence.json', report['evidence'])

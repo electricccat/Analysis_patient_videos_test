@@ -19,7 +19,8 @@ def enrich_report(report, *, online=False, topic=None, catalog=None, search=None
         if topic not in bundle['topics']:
             raise ValueError('Тема недоступна: нет соответствующих надёжных измерений.')
         try:
-            found = (search or PubMedSearch()).search(topic)
+            # An explicit user search must query NCBI again, even within the cache TTL.
+            found = (search or PubMedSearch()).search(topic, refresh=True)
             bundle['search_results'] = found['sources']
             bundle['online_search'] = {'status':'completed', **{k:v for k,v in found.items() if k!='sources'}}
         except Exception:

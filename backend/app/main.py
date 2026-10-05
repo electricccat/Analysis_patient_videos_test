@@ -14,6 +14,7 @@ from .storage import ROOT, DATA, MODEL, LOCK, study_dir, write_json, read_json
 from .video.processing import inspect_video
 from .pipeline import run
 from .evidence.enrich import enrich_report
+from .evidence.patient_search import with_patient_literature
 from .patient import FIELDS, PatientProfile, validate_profile
 
 MAX_UPLOAD = 300 * 1024 * 1024
@@ -26,6 +27,7 @@ evidence_active = set()
 class EvidenceRequest(BaseModel):
     online: bool = False
     topic: str | None = None
+    patient_online: bool = False
 
 
 @asynccontextmanager
@@ -172,12 +174,21 @@ def update_patient(study_id: str, request: PatientProfile):
             original = read_json(report_path)
             original['patient_profile'] = profile
             original.setdefault('provenance', {})['patient_profile_updated_at'] = datetime.now(timezone.utc).isoformat()
-            updated = enrich_report(original)
-        write_json(directory / 'patient.json', profile)
-        if updated:
+            evidence_active.add(study_id)
+        else:
+            write_json(directory / 'patient.json', profile)
+            return {'patient_profile': profile, 'report': None}
+    # Network traffic must not hold the shared storage lock.
+    try:
+        updated = with_patient_literature(enrich_report(original))
+        with LOCK:
+            write_json(directory / 'patient.json', profile)
             write_json(directory / 'evidence.json', updated['evidence'])
             write_json(report_path, updated)
         return {'patient_profile': profile, 'report': updated}
+    finally:
+        with LOCK:
+            evidence_active.discard(study_id)
 
 
 @app.get('/api/studies/{study_id}')
@@ -219,6 +230,8 @@ def update_evidence(study_id: str, request: EvidenceRequest):
         evidence_active.add(study_id)
     try:
         enriched = enrich_report(original,online=request.online,topic=request.topic)
+        if request.patient_online:
+            enriched = with_patient_literature(enriched)
         with LOCK:
             write_json(directory / 'evidence.json',enriched['evidence'])
             write_json(directory / 'report.json',enriched)

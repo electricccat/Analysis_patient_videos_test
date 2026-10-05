@@ -88,6 +88,8 @@ def test_real_model_blank_video_pipeline_and_deletion(client,tmp_path,monkeypatc
         time.sleep(.1)
     assert status['status']=='completed',status
     report=client.get(f'/api/studies/{study_id}/report').json()
+    assert report['patient_literature']['status'] == 'unavailable'
+    assert report['patient_literature']['feature_links'] == []
     assert report['pose_quality']['no_person_frames']==15
     assert report['metrics']['left_arm']['elbow_rom']['value'] is None
     assert report['observations']==[]

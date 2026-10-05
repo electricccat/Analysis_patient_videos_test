@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, field_validator
 ALLOWED_HOSTS = {'www.nice.org.uk', 'www.cochrane.org', 'pubmed.ncbi.nlm.nih.gov',
                  'www.strokeguideline.org', 'www.who.int', 'www.ahajournals.org'}
 RANK = {'clinical_practice_guideline': 0, 'systematic_review': 1,
-        'meta_analysis': 1, 'randomized_controlled_trial': 2, 'observational_study': 3, 'other': 4}
+        'meta_analysis': 1, 'randomized_controlled_trial': 2, 'validation_study': 2, 'observational_study': 3, 'other': 4}
 CATALOG = Path(__file__).with_name('catalog.json')
 CATALOG_REVIEW_MAX_DAYS = 180
 

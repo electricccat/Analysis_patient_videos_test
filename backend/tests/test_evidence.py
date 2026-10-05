@@ -120,6 +120,39 @@ def test_network_failure_preserves_report_and_shows_warning(report):
     assert enriched['evidence']['sources']
 
 
+def test_explicit_online_search_refreshes_cached_topic_and_replaces_results(report, monkeypatch):
+    from backend.app.evidence import pubmed
+    calls = []
+    current_id = ['12345']
+    def handler(request):
+        calls.append(request)
+        if request.url.path.endswith('esearch.fcgi'):
+            return httpx.Response(200, json={'esearchresult': {'idlist': current_id[:]}})
+        return httpx.Response(200, text='<PubmedArticleSet>' + article(current_id[0]) + '</PubmedArticleSet>')
+    # Exercise production caching while keeping all network traffic local to the test.
+    client_class = httpx.Client
+    def client(**kwargs):
+        kwargs['transport'] = httpx.MockTransport(handler)
+        return client_class(**kwargs)
+    monkeypatch.setattr(pubmed.httpx, 'Client', client)
+    monkeypatch.setattr(pubmed, 'cache', {})
+    search = PubMedSearch()
+    first = search.search('upper_limb')
+    assert first['from_cache'] is False
+    current_id[0] = '54321'
+    assert search.search('upper_limb')['from_cache'] is True
+    assert len(calls) == 2
+    report['evidence'] = {'search_results': first['sources']}
+    refreshed = enrich_report(report, online=True, topic='upper_limb',
+                              catalog=ReviewedCatalogService(as_of=AS_OF), search=search)
+    assert len(calls) == 4
+    assert refreshed['evidence']['online_search']['from_cache'] is False
+    assert [s['id'] for s in refreshed['evidence']['search_results']] == ['pubmed_54321']
+    assert refreshed['metrics'] == report['metrics']
+    assert search.search('upper_limb')['sources'][0]['id'] == 'pubmed_54321'
+    assert len(calls) == 4
+
+
 def test_arbitrary_topic_and_ssrf_rejected(report):
     with pytest.raises(ValueError): PubMedSearch().search('https://evil.test/')
     with pytest.raises(ValueError): enrich_report(report,online=True,topic='arbitrary',catalog=ReviewedCatalogService(as_of=AS_OF))
