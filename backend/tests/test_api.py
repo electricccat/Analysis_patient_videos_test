@@ -122,3 +122,24 @@ def test_real_model_blank_video_pipeline_and_deletion(client,tmp_path,monkeypatc
     assert not (storage.DATA/study_id).exists()
     assert client.get(f'/api/studies/{study_id}/report').status_code==404
     executor.shutdown()
+
+
+@pytest.mark.parametrize('status', ['completed', 'failed'])
+def test_delete_removes_all_study_files_and_preserves_other_studies(client, status):
+    study_id = 'd' * 32
+    other_id = 'e' * 32
+    for identifier in (study_id, other_id):
+        directory = storage.DATA / identifier
+        directory.mkdir()
+        storage.write_json(directory / 'study.json', {
+            'study_id': identifier, 'created_at': '2026-10-06', 'status': status,
+            'extension': '.mp4',
+        })
+        (directory / 'source.mp4').write_bytes(b'test video')
+        (directory / 'derived').mkdir()
+        (directory / 'derived' / 'patient.json').write_text('{}')
+    assert client.delete(f'/api/studies/{study_id}').status_code == 204
+    assert not (storage.DATA / study_id).exists()
+    assert (storage.DATA / other_id / 'source.mp4').is_file()
+    assert [study['study_id'] for study in client.get('/api/studies').json()] == [other_id]
+    assert client.get(f'/api/studies/{study_id}').status_code == 404

@@ -23,7 +23,8 @@ export default function App() {
  const [report,setReport] = useState<Report|null>(null), [frames,setFrames] = useState<Frame[]>([]);
  const [time,setTime] = useState(0), [error,setError] = useState(''), [busy,setBusy] = useState(false), [modelReady,setModelReady] = useState<boolean|null>(null);
  const [tab,setTab] = useState<'analysis'|'report'>('analysis'), [chart,setChart] = useState('shoulder_angle');
- const [deletePrompt,setDeletePrompt] = useState(false);
+ const [deletePrompt,setDeletePrompt] = useState<Study|null>(null);
+ const [deleting,setDeleting] = useState(false);
  const refresh = () => api<Study[]>('/api/studies').then(setStudies).catch(e=>setError(e.message));
  useEffect(()=>{ refresh(); api<{model_ready:boolean}>('/api/health').then(x=>setModelReady(x.model_ready)).catch(()=>setError('Сервер недоступен. Запустите FastAPI на порту 8000.')); },[]);
  useEffect(()=>{
@@ -47,7 +48,7 @@ export default function App() {
    };
    poll(); return ()=>{ cancelled = true; clearTimeout(timer); };
  },[selected?.study_id]);
- const choose = (study: Study|null) => { if (study && study.study_id === selected?.study_id) return; setSelected(study); setReport(null); setFrames([]); setTime(0); setError(''); setDeletePrompt(false); };
+ const choose = (study: Study|null) => { if (deleting) return; if (study && study.study_id === selected?.study_id) return; setSelected(study); setReport(null); setFrames([]); setTime(0); setError(''); setDeletePrompt(null); };
  const upload = async () => {
    if (!file) return;
    setBusy(true); setError('');
@@ -58,9 +59,17 @@ export default function App() {
    } catch(e) { setError((e as Error).message); } finally {setBusy(false);}
  };
  const remove = async () => {
-   if (!selected) return;
-   try { await api(`/api/studies/${selected.study_id}`,{method:'DELETE'}); choose(null); refresh(); }
-   catch(e) {setError((e as Error).message);}
+   if (!deletePrompt || deleting) return;
+   const target = deletePrompt;
+   setDeleting(true); setError('');
+   try {
+     await api(`/api/studies/${target.study_id}`,{method:'DELETE'});
+     if (selected?.study_id === target.study_id) {
+       setSelected(null); setReport(null); setFrames([]); setTime(0);
+     }
+     setStudies(current=>current.filter(study=>study.study_id!==target.study_id));
+     setDeletePrompt(null);
+   } catch(e) {setError((e as Error).message);} finally {setDeleting(false);}
  };
  const pending = selected && ['queued','processing'].includes(selected.status);
  const chartOptions: Record<string,{label:string;unit:string;keys:string[]}> = {
@@ -75,12 +84,14 @@ export default function App() {
    <aside className="sidebar"><a className="brand" href="/" aria-label="Кинема — главная"><Activity size={28}/><span>кинема<span className="brand-dot">.</span></span></a><div className="brand-sub">ЛАБОРАТОРИЯ ДВИЖЕНИЯ</div>
      <div className="nav-label">РАБОЧЕЕ ПРОСТРАНСТВО</div><button className={`nav-item ${!selected?'active':''}`} onClick={()=>choose(null)}><Upload size={18}/> Новое исследование <span>＋</span></button>
      <div className="nav-label study-label">ИССЛЕДОВАНИЯ <span>{studies.length.toString().padStart(2,'0')}</span></div>
-     <div className="study-list">{studies.length === 0 && <p className="empty-side">Загруженные видео появятся здесь</p>}{studies.map((s,i)=><button className={`study-item ${selected?.study_id===s.study_id?'chosen':''}`} key={s.study_id} onClick={()=>choose(s)}><FileVideo size={17}/><div><strong>{s.title||`Исследование ${studies.length-i}`}</strong><small>{new Date(s.created_at).toLocaleDateString('ru-RU')} · {s.status==='completed'?'Готово':s.status==='failed'?'Ошибка':'В работе'}</small></div><ChevronRight size={14}/></button>)}</div>
+     <div className="study-list">{studies.length === 0 && <p className="empty-side">Загруженные видео появятся здесь</p>}{studies.map((s,i)=><div className="study-row" key={s.study_id}><button className={`study-item ${selected?.study_id===s.study_id?'chosen':''}`} disabled={deleting} onClick={()=>choose(s)}><FileVideo size={17}/><div><strong>{s.title||`Исследование ${studies.length-i}`}</strong><small>{new Date(s.created_at).toLocaleDateString('ru-RU')} · {s.status==='completed'?'Готово':s.status==='failed'?'Ошибка':'В работе'}</small></div><ChevronRight size={14}/></button><button className="study-delete" aria-label={`Удалить ${s.title||`исследование ${studies.length-i}`}`} title={['queued','processing'].includes(s.status)?'Дождитесь завершения анализа':'Удалить исследование'} disabled={deleting||['queued','processing'].includes(s.status)} onClick={()=>{setError('');setDeletePrompt(s);}}><Trash2 size={16}/></button></div>)}</div>
      <div className="local-note"><ShieldCheck size={21}/><strong>Видео остаётся у вас</strong><p>Обработка на локальном сервере. Без отправки во внешние AI API.</p><span className="tag dark">MVP · v0.1</span></div>
    </aside>
    <main><header className="topbar"><span>Верхняя конечность <ChevronRight size={14}/> {selected?'Результаты исследования':'Новое исследование'}</span><span className="prototype"><span/> ИССЛЕДОВАТЕЛЬСКИЙ ПРОТОТИП</span></header>
    <div className="content"><div className="page-heading"><div><div className="eyebrow">ОБЪЕКТИВНОЕ ИЗМЕРЕНИЕ ДВИЖЕНИЯ</div><h1>{report?'От движения — к данным.':'Каждое движение имеет значение.'}</h1><p>{report?'Исследуйте траектории, суставные углы и различия между сторонами.':'Загрузите видео, чтобы увидеть движение верхних конечностей во времени.'}</p></div><div className="heading-icon"><Activity size={38}/></div></div>
    {error && <div role="alert" className="error">{error}</div>}
+   {deletePrompt && <div className="delete-overlay"><section className="delete-confirm" role="alertdialog" aria-modal="true" aria-labelledby="delete-title" aria-describedby="delete-description" onKeyDown={e=>{if(e.key==='Escape'&&!deleting)setDeletePrompt(null);if(e.key==='Tab'){const buttons=Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));const first=buttons[0],last=buttons[buttons.length-1];if(!first){e.preventDefault();}else if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}}}><h2 id="delete-title">Удалить исследование?</h2><p><strong>{deletePrompt.title||`Исследование ${studies.length-studies.findIndex(study=>study.study_id===deletePrompt.study_id)}`} · {new Date(deletePrompt.created_at).toLocaleDateString('ru-RU')}</strong></p><p id="delete-description">Исходное видео, копия, landmarks, метрики, анкета пациента и отчёт будут удалены без возможности восстановления.</p>{error&&<p role="alert" className="error">{error}</p>}<div className="actions"><button className="secondary" autoFocus disabled={deleting} onClick={()=>setDeletePrompt(null)}>Отмена</button><button className="delete" disabled={deleting} onClick={remove}>{deleting?'Удаление…':'Удалить все данные'}</button></div></section></div>}
+
    {(selected?.is_demo||report?.is_demo) && <div className="demo-notice" role="note"><strong>Демонстрационный пример · вымышленный пациент</strong><p>Анкета и очные результаты придуманы. Видео — схематическая анимация, метрики рассчитаны по заданным координатам без распознавания MediaPipe. Этот пример показывает работу интерфейса и правил подбора; он не подтверждает клиническую точность программы.</p></div>}
    {!selected && <>
      <div className="workflow"><span className="current"><b>01</b> Загрузка видео</span><ChevronRight size={16}/><span><b>02</b> Анализ движения</span><ChevronRight size={16}/><span><b>03</b> Результаты</span></div>
@@ -100,8 +111,8 @@ export default function App() {
    </>}
    {pending && <section className="card progress-card"><LoaderCircle className="spin" size={36}/><h2>{selected.stage==='patient_literature'?'Подбираем литературу по анкете и видео':'Извлекаем движение из видео'}</h2><p>Распознавание позы → расчёт метрик → история болезни → поиск публикаций → отчёт</p><progress max="1" value={selected.progress??undefined}/><span>{selected.processed_frames??0} кадров обработано · {selected.progress===null?'длительность уточняется':`${Math.round((selected.progress??0)*100)}%`}</span></section>}
    {selected && !pending && !report && selected.status==='completed' && <p>Загрузка результатов…</p>}
-   {selected && !pending && <div className="result-actions"><div className="tabs"><button className={tab==='analysis'?'active':''} onClick={()=>setTab('analysis')}>Анализ движения</button><button className={tab==='report'?'active':''} onClick={()=>setTab('report')}>Объективный отчёт</button></div><div className="actions">{report && <a className="secondary" href={`/api/studies/${selected.study_id}/files/report`} download><Download size={15}/> JSON отчёт</a>}<button className="delete" onClick={()=>setDeletePrompt(true)}><Trash2 size={16}/> Удалить</button></div></div>}
-   {deletePrompt && <div className="delete-confirm" role="alert"><p>Удалить исследование полностью? Исходное видео, копия, landmarks, метрики, анкета пациента и отчёт будут удалены.</p><button className="delete" onClick={remove}>Удалить все данные</button><button className="secondary" onClick={()=>setDeletePrompt(false)}>Отмена</button></div>}
+   {selected && !pending && <div className="result-actions"><div className="tabs"><button className={tab==='analysis'?'active':''} onClick={()=>setTab('analysis')}>Анализ движения</button><button className={tab==='report'?'active':''} onClick={()=>setTab('report')}>Объективный отчёт</button></div><div className="actions">{report && <a className="secondary" href={`/api/studies/${selected.study_id}/files/report`} download><Download size={15}/> JSON отчёт</a>}<button className="delete" disabled={deleting} onClick={()=>{setError('');setDeletePrompt(selected);}}><Trash2 size={16}/> Удалить</button></div></div>}
+
    {report && <>
      <div className="quality-bar"><ShieldCheck size={19}/><strong>Техническая надёжность: {reliability[report.pose_quality.level].toLowerCase()}</strong><span>{report.video_quality.decoded_frames} кадров</span><span>{report.video_quality.decoded_duration_seconds.toFixed(1)} с</span><span>Порог confidence ≥ {report.pose_quality.threshold}</span></div>
      {tab==='analysis' ? <>
