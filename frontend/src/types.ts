@@ -13,7 +13,14 @@ export type RehabOption = {id: string; category: string; option: string; reason:
 export type PatientProfile = Record<string, string | number | null>;
 export type PatientField = {key: string; label: string; group: string; kind: string; choices: [string,string][] | null; minimum: number | null; maximum: number | null; hint: string};
 export type Personalized = {scope: string; status: string; population_note: string; missing_information: string[]; priorities: string[]; measurements: FeatureLink[]; goals: string; note: string; options: {id: string; option: string; status: string; patient_basis: {goals: string; daily_limitations: string; affected_side: string; task: string}; feature_links: FeatureLink[]; checks: string[]; evidence: EvidenceSource[]}[]};
+export type WebSource = {title:string;url:string;summary:string;domain:string;verification:string;language?:string;source_kind?:string;
+ content_review?:{status:string;short_summary:string;key_points:string[];note?:string;checked_at?:string;channel?:string;video_id?:string;video_title?:string}};
 export type Report = {
+ analysis_mode?: string; selected_regions?: string[];
+ body_details?: {region:string;label:string;status:string;coverage:number;value:number|null;statement:string;timestamp:number|null}[];
+ discharge?: {text:string;status:string;warning?:string;photo_attached?:boolean};
+ clinical_review?: {documented_diagnosis:string|null;status:string;note:string;hypotheses:{title:string;basis:string[];alternatives:string[];checks:string[]}[]};
+ web_resources?: {topic:string;generated_at:string;note:string;warnings:string[];groups:{id:string;title:string;query:string;status:string;search_url:string;sources:WebSource[]}[]};
  patient_literature?: {status: string; generated_at: string; basis: string[]; warnings: string[]; note: string; privacy: string; sources: EvidenceSource[]; reviewed_sources: EvidenceSource[]; feature_links: FeatureLink[]; groups: {topic: string; title: string; reason: string; status: string; query?: string; accessed_at?: string; source_ids: string[]}[]};
  is_demo?: boolean;
  patient_profile?: PatientProfile; personalized?: Personalized;

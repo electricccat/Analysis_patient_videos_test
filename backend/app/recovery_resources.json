@@ -1,0 +1,108 @@
+{
+  "reviewed_at": "2026-10-07",
+  "sources": [
+    {
+      "title": "NICE: клинические рекомендации по реабилитации после инсульта (NG236)",
+      "url": "https://www.nice.org.uk/guidance/ng236/chapter/Recommendations",
+      "summary": "Stroke rehabilitation in adults. Рекомендации медицинской организации; индивидуальную применимость необходимо оценить отдельно.",
+      "categories": [
+        "guidelines"
+      ],
+      "reviewed_at": "2026-10-07"
+    },
+    {
+      "title": "American Stroke Association: упражнения и видео реабилитации после инсульта",
+      "url": "https://www.stroke.org/en/life-after-stroke/stroke-rehab/post-stroke-exercise-videos",
+      "summary": "Post-Stroke Exercise Videos. Общедоступные видеоупражнения организации American Stroke Association, а не персональное назначение ЛФК.",
+      "categories": [
+        "exercise",
+        "video"
+      ],
+      "reviewed_at": "2026-10-07"
+    },
+    {
+      "title": "Stroke Association: программа видеоупражнений для восстановления после инсульта",
+      "url": "https://stroke.org.uk/blog/stroke-specific-exercise-video-programme-what-we-learned",
+      "summary": "Stroke-specific exercise video programme. Материал о программе реабилитации; безопасность нагрузки необходимо проверить со специалистом.",
+      "categories": [
+        "exercise",
+        "video"
+      ],
+      "reviewed_at": "2026-10-07"
+    },
+    {
+      "title": "История восстановления Daniel Ganier после инсульта — American Stroke Association",
+      "url": "https://www.stroke.org/en/life-after-stroke/recovery/daniels-story",
+      "summary": "Stroke survival story: история пациента с фотографией и упоминанием реабилитации. Личный пример не доказывает эффективность лечения.",
+      "categories": [
+        "cases",
+        "photo"
+      ],
+      "reviewed_at": "2026-10-07"
+    },
+    {
+      "title": "МЕДСИ: реабилитация после инсульта — этапы и методы восстановления",
+      "url": "https://spb.medsi.ru/articles/reabilitatsiya-posle-insulta/",
+      "summary": "Русскоязычная статья медицинской организации: реабилитация после инсульта, упражнения, этапы и помощь семьи.",
+      "categories": [
+        "exercise"
+      ],
+      "language": "ru",
+      "reviewed_at": "2026-10-07"
+    },
+    {
+      "title": "МЕДСИ: реабилитация после инсульта — основные правила",
+      "url": "https://medsi.ru/articles/reabilitatsiya-posle-insulta-osnovnye-pravila/",
+      "summary": "Обзор восстановления двигательных навыков и речи, принципов реабилитации и лечебной физкультуры после инсульта.",
+      "categories": [
+        "exercise"
+      ],
+      "language": "ru",
+      "reviewed_at": "2026-10-07"
+    },
+    {
+      "title": "НМИЦ реабилитации и курортологии: программа восстановления после инсульта",
+      "url": "https://udino.nmicrk.ru/platnye-uslugi/programs/programma-nejrovosstanovlenie-posle-insul-ta",
+      "summary": "Описание программы центра: реабилитация после инсульта, ЛФК и индивидуальная оценка. Коммерческая программа; перечисление методов не доказывает их эффективность.",
+      "categories": [
+        "exercise"
+      ],
+      "language": "ru",
+      "source_kind": "clinic_program",
+      "reviewed_at": "2026-10-07"
+    },
+    {
+      "title": "Упражнения после инсульта — реабилитация, комплекс 1 (GHRS, YouTube)",
+      "url": "https://www.youtube.com/watch?v=LvTfeTnL-90",
+      "summary": "Русскоязычное демонстрационное видео реабилитационных упражнений после инсульта. Бесплатный фрагмент коммерческого курса GHRS.",
+      "categories": [
+        "video"
+      ],
+      "language": "ru",
+      "source_kind": "course_preview",
+      "reviewed_at": "2026-10-07"
+    },
+    {
+      "title": "Упражнения для восстановления после инсульта — комплекс 4 (GHRS, YouTube)",
+      "url": "https://www.youtube.com/watch?v=D21xlYvdiIg",
+      "summary": "Русскоязычное демонстрационное видео восстановления и реабилитационных упражнений после инсульта. Бесплатный фрагмент коммерческого курса GHRS.",
+      "categories": [
+        "video"
+      ],
+      "language": "ru",
+      "source_kind": "course_preview",
+      "reviewed_at": "2026-10-07"
+    },
+    {
+      "title": "ФНКЦ ФМБА России: лечение и реабилитация после инсульта",
+      "url": "https://fnkc-fmba.ru/operatsii-i-metody-lecheniya/lechenie-i-reabilitatsiya-posle-insulta/",
+      "summary": "Русскоязычный обзор методов реабилитации после инсульта: ЛФК, функция руки и речи, индивидуальная программа. Описание услуг медицинского центра, не персональное назначение.",
+      "categories": [
+        "exercise"
+      ],
+      "language": "ru",
+      "source_kind": "clinic_program",
+      "reviewed_at": "2026-10-07"
+    }
+  ]
+}
